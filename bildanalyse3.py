@@ -8,7 +8,7 @@ from io import BytesIO
 st.set_page_config(page_title="Bildanalyse Komfort-App", layout="wide")
 st.title("🧪 Bildanalyse Komfort-App")
 
-# 📂 Bild-Upload
+# 📁 Bild-Upload
 uploaded_file = st.sidebar.file_uploader("📁 Bild auswählen", type=["png", "jpg", "jpeg", "tif", "tiff"])
 if not uploaded_file:
     st.warning("Bitte zuerst ein Bild hochladen.")
@@ -19,10 +19,9 @@ img_gray = img_rgb.convert("L")
 img_array = np.array(img_gray)
 w, h = img_rgb.size
 
-# 🧠 Funktion: Beste Schwelle aus Fleckengrößen
+# 🎯 Funktion: Beste Schwelle aus Fleckengrößen
 def finde_beste_schwelle(cropped_array, min_area, max_area, group_diameter):
-    best_score = -1
-    best_thresh = 0
+    best_score, best_thresh = -1, 0
     for thresh in range(50, 200, 5):
         mask = cropped_array < thresh
         labeled_array, _ = label(mask)
@@ -31,14 +30,13 @@ def finde_beste_schwelle(cropped_array, min_area, max_area, group_diameter):
         filtered = [a for a in areas if min_area <= a <= max_area]
         score = max(filtered) if filtered else 0
         if score > best_score:
-            best_score = score
-            best_thresh = thresh
+            best_score, best_thresh = score, thresh
     return best_thresh, best_score
 
 # 🎛️ Modus-Auswahl
 modus = st.sidebar.radio("Analyse-Modus wählen", ["Fleckengruppen", "Kreis-Ausschnitt"])
 circle_color = st.sidebar.color_picker("🎨 Kreisfarbe", "#FF0000")
-circle_width = st.sidebar.slider("🖊️ Liniendicke", 1, 10, 6)
+circle_width = st.sidebar.slider("✒️ Liniendicke", 1, 10, 6)
 
 # ▓▓▓ MODUS 1: Fleckengruppen ▓▓▓
 if modus == "Fleckengruppen":
@@ -65,16 +63,6 @@ if modus == "Fleckengruppen":
             st.session_state.intensity = best_intensity
             st.success(f"✅ Beste Schwelle gefunden: {best_intensity} (max Fläche: {score})")
 
-if st.button("🧿 Einzelne Flecken anzeigen"):
-    draw_img_flecken = img_rgb.copy()
-    draw = ImageDraw.Draw(draw_img_flecken)
-    for x, y in centers:
-        draw.ellipse(
-            [(x + x_start - 3, y + y_start - 3), (x + x_start + 3, y + y_start + 3)],
-            fill="cyan"
-        )
-    st.image(draw_img_flecken, caption="🎯 Einzelne Flecken (cyan)", use_column_width=True)
-
     with col2:
         cropped_array = img_array[y_start:y_end, x_start:x_end]
         mask = cropped_array < intensity
@@ -87,6 +75,21 @@ if st.button("🧿 Einzelne Flecken anzeigen"):
             if min_area <= np.sum(labeled_array[obj] > 0) <= max_area
         ]
 
+        if st.button("🧿 Einzelne Flecken anzeigen"):
+            draw_img_flecken = img_rgb.copy()
+            draw = ImageDraw.Draw(draw_img_flecken)
+            if centers:
+                for x, y in centers:
+                    draw.ellipse(
+                        [(x + x_start - 3, y + y_start - 3), (x + x_start + 3, y + y_start + 3)],
+                        fill="cyan"
+                    )
+                st.image(draw_img_flecken, caption="🎯 Einzelne Flecken (cyan)", use_column_width=True)
+            else:
+                st.warning("⚠️ Keine Flecken erkannt in diesem Bereich.")
+                st.image(draw_img_flecken, caption="📷 Originalbild (keine Flecken)", use_column_width=True)
+
+        # Gruppierung
         grouped, visited = [], set()
         for i, (x1, y1) in enumerate(centers):
             if i in visited:
@@ -125,8 +128,8 @@ elif modus == "Kreis-Ausschnitt":
 
     with col1:
         st.markdown("### 🔧 Kreis-Einstellungen")
-        center_x = st.slider("🞄 Mittelpunkt-X", 0, w - 1, w // 2)
-        center_y = st.slider("🞄 Mittelpunkt-Y", 0, h - 1, h // 2)
+        center_x = st.slider("🌄 Mittelpunkt-X", 0, w - 1, w // 2)
+        center_y = st.slider("🌄 Mittelpunkt-Y", 0, h - 1, h // 2)
         radius = st.slider("🔵 Radius", 10, min(w, h) // 2, 100)
 
     with col2:
@@ -142,19 +145,14 @@ elif modus == "Kreis-Ausschnitt":
         if st.checkbox("🎬 Nur Ausschnitt anzeigen"):
             mask = Image.new("L", (w, h), 0)
             mask_draw = ImageDraw.Draw(mask)
-            mask_draw.ellipse(
-                [(center_x - radius, center_y - radius), (center_x + radius, center_y + radius)],
-                fill=255
-            )
+            mask_draw.ellipse([(center_x - radius, center_y - radius), (center_x + radius, center_y + radius)], fill=255)
             cropped = Image.composite(img_rgb, Image.new("RGB", img_rgb.size, (255, 255, 255)), mask)
-            st.image(cropped, caption="🧩 Kreis-Ausschnitt", use_column_width=True)
-
+            st.image(cropped, caption="🛟 Kreis-Ausschnitt", use_column_width=True)
             buf = BytesIO()
             cropped.save(buf, format="PNG")
-            byte_im = buf.getvalue()
             st.download_button(
                 label="📥 Kreis-Ausschnitt herunterladen",
-                data=byte_im,
+                data=buf.getvalue(),
                 file_name="kreis_ausschnitt.png",
                 mime="image/png"
             )
