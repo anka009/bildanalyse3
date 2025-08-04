@@ -37,6 +37,21 @@ def berechne_beste_schwelle(img_array, min_area, max_area, group_diameter):
         grouped = []
         visited = set()
         for i, (x1, y1) in enumerate(centers):
+def finde_beste_schwelle(cropped_array, min_area, max_area):
+    best_score = -1
+    best_thresh = 0
+    for thresh in range(50, 200, 5):
+        mask = cropped_array < thresh
+        labeled_array, _ = label(mask)
+        objects = find_objects(labeled_array)
+        areas = [np.sum(labeled_array[obj] > 0) for obj in objects]
+        filtered = [a for a in areas if min_area <= a <= max_area]
+        score = max(filtered) if filtered else 0
+        if score > best_score:
+            best_score = score
+            best_thresh = thresh
+    return best_thresh, best_score
+
             if i in visited:
                 continue
             gruppe = [(x1, y1)]
