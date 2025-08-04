@@ -65,6 +65,16 @@ if modus == "Fleckengruppen":
             st.session_state.intensity = best_intensity
             st.success(f"✅ Beste Schwelle gefunden: {best_intensity} (max Fläche: {score})")
 
+if st.button("🧿 Einzelne Flecken anzeigen"):
+    draw_img_flecken = img_rgb.copy()
+    draw = ImageDraw.Draw(draw_img_flecken)
+    for x, y in centers:
+        draw.ellipse(
+            [(x + x_start - 3, y + y_start - 3), (x + x_start + 3, y + y_start + 3)],
+            fill="cyan"
+        )
+    st.image(draw_img_flecken, caption="🎯 Einzelne Flecken (cyan)", use_column_width=True)
+
     with col2:
         cropped_array = img_array[y_start:y_end, x_start:x_end]
         mask = cropped_array < intensity
