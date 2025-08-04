@@ -20,20 +20,39 @@ img_array = np.array(img_gray)
 w, h = img_rgb.size
 
 # 🧠 Funktion: Beste Schwelle finden
-def finde_beste_schwelle(cropped_array, min_area, max_area):
-    best_score = -1
-    best_thresh = 0
-    for thresh in range(50, 200, 5):
-        mask = cropped_array < thresh
+def berechne_beste_schwelle(img_array, min_area, max_area, group_diameter):
+    beste_anzahl = 0
+    bester_wert = 0
+    for schwelle in range(10, 250, 5):
+        mask = img_array < schwelle
         labeled_array, _ = label(mask)
         objects = find_objects(labeled_array)
-        areas = [np.sum(labeled_array[obj] > 0) for obj in objects]
-        filtered = [a for a in areas if min_area <= a <= max_area]
-        score = max(filtered) if filtered else 0
-        if score > best_score:
-            best_score = score
-            best_thresh = thresh
-    return best_thresh, best_score
+        centers = []
+        for obj_slice in objects:
+            area = np.sum(labeled_array[obj_slice] > 0)
+            if min_area <= area <= max_area:
+                y = (obj_slice[0].start + obj_slice[0].stop) // 2
+                x = (obj_slice[1].start + obj_slice[1].stop) // 2
+                centers.append((x, y))
+        grouped = []
+        visited = set()
+        for i, (x1, y1) in enumerate(centers):
+            if i in visited:
+                continue
+            gruppe = [(x1, y1)]
+            visited.add(i)
+            for j, (x2, y2) in enumerate(centers):
+                if j in visited:
+                    continue
+                dist = ((x1 - x2)**2 + (y1 - y2)**2)**0.5
+                if dist <= group_diameter / 2:
+                    gruppe.append((x2, y2))
+                    visited.add(j)
+            grouped.append(gruppe)
+        if len(grouped) > beste_anzahl:
+            beste_anzahl = len(grouped)
+            bester_wert = schwelle
+    return bester_wert, beste_anzahl
 
 # 🎛️ Modus-Auswahl
 modus = st.sidebar.radio("Analyse-Modus wählen", ["Fleckengruppen", "Kreis-Ausschnitt"])
