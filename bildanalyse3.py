@@ -4,6 +4,21 @@ import numpy as np
 from scipy.ndimage import label, find_objects
 from io import BytesIO
 
+def finde_beste_schwelle(cropped_array, min_area, max_area):
+    best_score = -1
+    best_thresh = 0
+    for thresh in range(50, 200, 5):
+        mask = cropped_array < thresh
+        labeled_array, _ = label(mask)
+        objects = find_objects(labeled_array)
+        areas = [np.sum(labeled_array[obj] > 0) for obj in objects]
+        filtered = [a for a in areas if min_area <= a <= max_area]
+        score = max(filtered) if filtered else 0
+        if score > best_score:
+            best_score = score
+            best_thresh = thresh
+    return best_thresh, best_score
+    
 # 📄 Seiteneinstellungen
 st.set_page_config(page_title="Bildanalyse Komfort-App", layout="wide")
 st.title("🧪 Bildanalyse Komfort-App")
@@ -24,6 +39,13 @@ modus = st.sidebar.radio("Analyse-Modus wählen", ["Fleckengruppen", "Kreis-Auss
 circle_color = st.sidebar.color_picker("🎨 Kreisfarbe", "#FF0000")
 circle_width = st.sidebar.slider("🖊️ Liniendicke", 1, 10, 6)
 
+if st.button("🔎 Beste Intensitäts-Schwelle automatisch finden"):
+    cropped_array = img_array[y_start:y_end, x_start:x_end]
+    best_intensity, score = finde_beste_schwelle(cropped_array, min_area, max_area)
+    st.session_state.intensity = best_intensity
+    st.success(f"✅ Beste Schwelle gefunden: {best_intensity} (Fläche: {score})")
+
+
 # ▓▓▓ MODUS 1: Fleckengruppen ▓▓▓
 if modus == "Fleckengruppen":
     st.subheader("🧠 Fleckengruppen erkennen")
@@ -42,26 +64,9 @@ if modus == "Fleckengruppen":
             st.session_state.intensity = 25
         intensity = st.slider("Intensitäts-Schwelle", 0, 255, st.session_state.intensity)
 
-if st.button("🔎 Beste Intensitäts-Schwelle automatisch finden"):
-    cropped_array = img_array[y_start:y_end, x_start:x_end]
-    best_intensity, score = finde_beste_schwelle(cropped_array, min_area, max_area)
-    st.session_state.intensity = best_intensity
-    st.success(f"✅ Beste Schwelle gefunden: {best_intensity} (Fläche: {score})")
 
-def finde_beste_schwelle(cropped_array, min_area, max_area):
-    best_score = -1
-    best_thresh = 0
-    for thresh in range(50, 200, 5):
-        mask = cropped_array < thresh
-        labeled_array, _ = label(mask)
-        objects = find_objects(labeled_array)
-        areas = [np.sum(labeled_array[obj] > 0) for obj in objects]
-        filtered = [a for a in areas if min_area <= a <= max_area]
-        score = max(filtered) if filtered else 0
-        if score > best_score:
-            best_score = score
-            best_thresh = thresh
-    return best_thresh, best_score
+
+
 
     with col2:
         cropped_array = img_array[y_start:y_end, x_start:x_end]
