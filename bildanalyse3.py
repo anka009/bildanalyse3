@@ -56,7 +56,7 @@ if modus == "Fleckengruppen":
         group_diameter = st.slider("Gruppendurchmesser", 20, 500, 60)
 
         if "intensity" not in st.session_state:
-            st.session_state.intensity = 135
+            st.session_state.intensity = 25
         intensity = st.slider("Intensitäts-Schwelle", 0, 255, st.session_state.intensity)
 
         if st.button("🔎 Beste Intensitäts-Schwelle automatisch finden"):
