@@ -19,7 +19,7 @@ img_gray = img_rgb.convert("L")
 img_array = np.array(img_gray)
 w, h = img_rgb.size
 
-# 🔍 Funktion zur automatischen Schwellenwertfindung
+# 🧠 Funktion: Beste Schwelle finden
 def finde_beste_schwelle(cropped_array, min_area, max_area):
     best_score = -1
     best_thresh = 0
@@ -54,6 +54,7 @@ if modus == "Fleckengruppen":
         min_area = st.slider("Minimale Fleckengröße", 10, 500, 30)
         max_area = st.slider("Maximale Fleckengröße", min_area, 1000, 250)
         group_diameter = st.slider("Gruppendurchmesser", 20, 500, 60)
+
         if "intensity" not in st.session_state:
             st.session_state.intensity = 135
         intensity = st.slider("Intensitäts-Schwelle", 0, 255, st.session_state.intensity)
