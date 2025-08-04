@@ -20,7 +20,7 @@ img_array = np.array(img_gray)
 w, h = img_rgb.size
 
 # 🧠 Funktion: Beste Schwelle aus Fleckengrößen
-def finde_beste_schwelle(cropped_array, min_area, max_area):
+def finde_beste_schwelle(cropped_array, min_area, max_area, group_diameter):
     best_score = -1
     best_thresh = 0
     for thresh in range(50, 200, 5):
