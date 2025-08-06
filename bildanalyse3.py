@@ -20,6 +20,33 @@ img_array = np.array(img_gray)
 w, h = img_rgb.size
 
 # 🧠 Beste Schwelle anhand der Fleckengruppenanzahl
+def gruppen_histogramm(cropped_array, min_area, max_area, group_diameter):
+    schwellen = list(range(30, 200, 5))
+    gruppenzahlen = []
+
+    for thresh in schwellen:
+        mask = cropped_array < thresh
+        labeled_array, _ = label(mask)
+        objects = find_objects(labeled_array)
+        centers = [((obj[1].start + obj[1].stop) // 2, (obj[0].start + obj[0].stop) // 2)
+                   for obj in objects if min_area <= np.sum(labeled_array[obj] > 0) <= max_area]
+
+        grouped, visited = [], set()
+        for i, (x1, y1) in enumerate(centers):
+            if i in visited: continue
+            gruppe = [(x1, y1)]
+            visited.add(i)
+            for j, (x2, y2) in enumerate(centers):
+                if j in visited: continue
+                if ((x1 - x2)**2 + (y1 - y2)**2)**0.5 <= group_diameter / 2:
+                    gruppe.append((x2, y2))
+                    visited.add(j)
+            grouped.append(gruppe)
+
+        gruppenzahlen.append(len(grouped))
+
+    return schwellen, gruppenzahlen
+
 def finde_beste_schwelle(cropped_array, min_area, max_area, group_diameter):
     best_score, best_thresh = -1, 0
     for thresh in range(50, 200, 5):
@@ -127,6 +154,21 @@ if modus == "Fleckengruppen":
             grouped.append(gruppe)
 
         st.success(f"📍 Fleckengruppen erkannt: {len(grouped)}")
+        
+# 📊 Gruppenzahl-Histogramm anzeigen
+import matplotlib.pyplot as plt
+
+schwellen, gruppenzahlen = gruppen_histogramm(cropped_array, min_area, max_area, group_diameter)
+best_thresh, _ = finde_beste_schwelle(cropped_array, min_area, max_area, group_diameter)
+
+fig, ax = plt.subplots()
+ax.bar(schwellen, gruppenzahlen, width=4, color='skyblue', edgecolor='black')
+ax.axvline(best_thresh, color='red', linestyle='--', label=f'Beste Schwelle: {best_thresh}')
+ax.set_xlabel("Intensitäts-Schwelle")
+ax.set_ylabel("Gruppenzahl")
+ax.set_title("📊 Gruppenzahl vs. Intensität")
+ax.legend()
+st.pyplot(fig)
 
         draw_img = img_rgb.copy()
         draw = ImageDraw.Draw(draw_img)
