@@ -109,17 +109,18 @@ if modus == "Fleckengruppen":
             )
 
         for gruppe in grouped:
-            if gruppe:
-                xs, ys = zip(*gruppe)
-                x_mean = int(np.mean(xs))
-                y_mean = int(np.mean(ys))
-                radius = group_diameter / 2
-                draw.ellipse(
-                    [(x_mean + x_start - radius, y_mean + y_start - radius),
-                     (x_mean + x_start + radius, y_mean + y_start + radius)],
-                    outline=circle_color,
-                    width=circle_width
-                )
+    if gruppe:
+        xs, ys = zip(*gruppe)
+        x_mean = int(np.mean(xs))
+        y_mean = int(np.mean(ys))
+        radius = group_diameter / 2
+        draw.ellipse(
+            [(x_mean + x_start - radius, y_mean + y_start - radius),
+             (x_mean + x_start + radius, y_mean + y_start + radius)],
+            outline=circle_color,
+            width=circle_width
+        )
+
                 draw.ellipse(
                     [(x_mean + x_start - max_dist, y_mean + y_start - max_dist),
                      (x_mean + x_start + max_dist, y_mean + y_start + max_dist)],
