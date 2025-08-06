@@ -142,3 +142,43 @@ if modus == "Fleckengruppen":
                     width=circle_width
                 )
         st.image(draw_img, caption="🖼️ Fleckengruppen-Vorschau", use_column_width=True)
+# ▓▓▓ MODUS 2: Kreis-Ausschnitt ▓▓▓
+elif modus == "Kreis-Ausschnitt":
+    st.subheader("🎯 Kreis-Ausschnitt wählen")
+    col1, col2 = st.columns([1, 2])
+
+    with col1:
+        st.markdown("### 🔧 Kreis-Einstellungen")
+        center_x = st.slider("🞄 Mittelpunkt-X", 0, w - 1, w // 2)
+        center_y = st.slider("🞄 Mittelpunkt-Y", 0, h - 1, h // 2)
+        radius = st.slider("🔵 Radius", 10, min(w, h) // 2, 100)
+
+    with col2:
+        draw_img = img_rgb.copy()
+        draw = ImageDraw.Draw(draw_img)
+        draw.ellipse(
+            [(center_x - radius, center_y - radius), (center_x + radius, center_y + radius)],
+            outline=circle_color,
+            width=circle_width
+        )
+        st.image(draw_img, caption="🖼️ Kreis-Vorschau", use_column_width=True)
+
+        if st.checkbox("🎬 Nur Ausschnitt anzeigen"):
+            mask = Image.new("L", (w, h), 0)
+            mask_draw = ImageDraw.Draw(mask)
+            mask_draw.ellipse(
+                [(center_x - radius, center_y - radius), (center_x + radius, center_y + radius)],
+                fill=255
+            )
+            cropped = Image.composite(img_rgb, Image.new("RGB", img_rgb.size, (255, 255, 255)), mask)
+            st.image(cropped, caption="🧩 Kreis-Ausschnitt", use_column_width=True)
+
+            buf = BytesIO()
+            cropped.save(buf, format="PNG")
+            byte_im = buf.getvalue()
+            st.download_button(
+                label="📥 Kreis-Ausschnitt herunterladen",
+                data=byte_im,
+                file_name="kreis_ausschnitt.png",
+                mime="image/png"
+            )
