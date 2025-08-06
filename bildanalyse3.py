@@ -198,7 +198,8 @@ ax.set_title("📊 Gruppenzahl vs. Intensität")
 ax.legend()
 st.pyplot(fig)
 
- ▓▓▓ MODUS 2: Kreis-Ausschnitt ▓▓▓
+# ▓▓▓ MODUS 2: Kreis-Ausschnitt ▓▓▓
+
 elif modus == "Kreis-Ausschnitt":
     st.subheader("🎯 Kreis-Ausschnitt wählen")
     col1, col2 = st.columns([1, 2])
