@@ -18,6 +18,26 @@ if not uploaded_file:
 img_rgb = Image.open(uploaded_file).convert("RGB")
 img_gray = img_rgb.convert("L")
 img_array = np.array(img_gray)
+# 🖼️ Bild anzeigen
+st.subheader("📷 Hochgeladenes Bild")
+st.image(img_rgb, caption="Originalbild", use_column_width=True)
+
+# 🎚️ Intensitäts-Schwellenwert-Slider
+threshold = st.slider("🔽 Intensitäts-Schwellenwert für Histogramm", min_value=0, max_value=255, value=128)
+
+# 📊 Histogramm mit Schwellenwert-Linie
+gray_array = np.array(img_gray)
+hist = cv2.calcHist([gray_array.astype(np.uint8)], [0], None, [256], [0, 256])
+
+fig, ax = plt.subplots()
+ax.plot(hist, color='gray')
+ax.axvline(x=threshold, color='red', linestyle='--', label=f'Schwelle: {threshold}')
+ax.set_title("📊 Intensitäts-Histogramm")
+ax.set_xlabel("Intensität")
+ax.set_ylabel("Pixelanzahl")
+ax.legend()
+st.pyplot(fig)
+
 w, h = img_rgb.size
 
 # 🧠 Hilfsfunktionen
