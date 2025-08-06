@@ -110,16 +110,17 @@ if modus == "Fleckengruppen":
         for gruppe in grouped:
             if gruppe:
                 xs, ys = zip(*gruppe)
-                x_min, x_max = min(xs), max(xs)
-                y_min, y_max = min(ys), max(ys)
-                draw.rectangle(
-                    [(x_min + x_start - group_diameter // 2, y_min + y_start - group_diameter // 2),
-                     (x_max + x_start + group_diameter // 2, y_max + y_start + group_diameter // 2)],
+                x_mean = int(np.mean(xs))
+                y_mean = int(np.mean(ys))
+                max_dist = max(((x - x_mean)**2 + (y - y_mean)**2)**0.5 for x, y in gruppe)
+                draw.ellipse(
+                    [(x_mean + x_start - max_dist, y_mean + y_start - max_dist),
+                     (x_mean + x_start + max_dist, y_mean + y_start + max_dist)],
                     outline=circle_color,
                     width=circle_width
                 )
-
-        st.image(draw_img, caption=f"🎯 {len(grouped)} Gruppen erkannt", use_column_width=True)
+                    
+            st.image(draw_img, caption=f"🎯 {len(grouped)} Gruppen erkannt", use_column_width=True)
 
         if st.button("📊 Gruppenzahl-Histogramm anzeigen"):
             schwellen, gruppenzahlen = gruppen_histogramm(cropped_array, min_area, max_area, group_diameter)
