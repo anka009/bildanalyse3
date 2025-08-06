@@ -82,22 +82,21 @@ if modus == "Fleckengruppen":
         max_area = st.slider("Maximale Fleckengröße", min_area, 1000, 250)
         group_diameter = st.slider("Gruppendurchmesser", 20, 500, 60)
 
-        # Initialisierung des Session-State
-        if "intensity" not in st.session_state:
-            st.session_state.intensity = 25
+# Initialisierung des Session-State
+if "intensity" not in st.session_state:
+    st.session_state.intensity = 25
 
-        # Interaktiver Slider mit Tastatursteuerung
-        intensity = st.slider("Intensitäts-Schwelle", 0, 255, value=st.session_state.intensity, key="intensity_slider")
-        st.session_state.intensity = intensity
+# Interaktiver Slider mit Tastatursteuerung
+intensity = st.slider("Intensitäts-Schwelle", 0, 255, value=st.session_state.intensity, key="intensity_slider")
+st.session_state.intensity = intensity
 
-        if st.button("🔎 Größte Schwelle berechnen"):
-            cropped_array = img_array[y_start:y_end, x_start:x_end]
-            best_intensity, score = finde_beste_schwelle(cropped_array, min_area, max_area, group_diameter)
-            st.session_state.intensity = best_intensity
-            st.session_state.intensity_slider = best_intensity  # Slider visuell aktualisieren
-            st.session_state.best_intensity = best_intensity
-            st.info(f"💡 Empfohlene Schwelle: **{best_intensity}** (ergibt {score} Gruppen)")
-
+# Button zur automatischen Schwellenwert-Ermittlung
+if st.button("🔎 Größte Schwelle berechnen"):
+    cropped_array = img_array[y_start:y_end, x_start:x_end]
+    best_intensity, score = finde_beste_schwelle(cropped_array, min_area, max_area, group_diameter)
+    st.session_state.intensity = best_intensity  # Slider aktualisiert sich automatisch
+    st.session_state.best_intensity = best_intensity
+    st.info(f"💡 Empfohlene Schwelle: **{best_intensity}** (ergibt {score} Gruppen)")
 
     with col2:
         cropped_array = img_array[y_start:y_end, x_start:x_end]
