@@ -4,6 +4,8 @@ import numpy as np
 from scipy.ndimage import label, find_objects
 from io import BytesIO
 import matplotlib.pyplot as plt
+import cv2
+
 
 # 📄 Seiteneinstellungen
 st.set_page_config(page_title="Bildanalyse Komfort-App", layout="wide")
