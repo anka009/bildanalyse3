@@ -19,8 +19,6 @@ img_gray = img_rgb.convert("L")
 img_array = np.array(img_gray)
 w, h = img_rgb.size
 
-st.image(img_rgb, caption="📷 Hochgeladenes Bild", use_column_width=True)
-
 # Hilfsfunktionen
 def finde_flecken(cropped_array, min_area, max_area, intensity):
     mask = cropped_array < intensity
@@ -78,7 +76,7 @@ if modus == "Fleckengruppen":
         draw_img = img_rgb.copy()
         draw = ImageDraw.Draw(draw_img)
 
-        # Einzelne Flecken einzeichnen
+        # Flecken einzeln markieren
         for x, y in centers:
             draw.ellipse(
                 [(x + x_start - spot_radius, y + y_start - spot_radius),
@@ -86,7 +84,7 @@ if modus == "Fleckengruppen":
                 fill=spot_color
             )
 
-        # Gruppen einzeichnen
+        # Gruppen markieren
         for gruppe in grouped:
             if gruppe:
                 xs, ys = zip(*gruppe)
@@ -99,7 +97,12 @@ if modus == "Fleckengruppen":
                     outline=circle_color, width=circle_width
                 )
 
-        st.image(draw_img, caption=f"🎯 {len(grouped)} Gruppen erkannt", use_column_width=True)
+        # Ergebnis anzeigen
+        st.markdown(f"### 🧮 Ergebnisse")
+        st.markdown(f"- **Anzahl erkannter Flecken**: `{len(centers)}`")
+        st.markdown(f"- **Anzahl erkannter Gruppen**: `{len(grouped)}`")
+
+        st.image(draw_img, caption="🎯 Ergebnisbild mit Markierungen", use_column_width=True)
 
 # Kreis-Ausschnitt-Modus
 elif modus == "Kreis-Ausschnitt":
