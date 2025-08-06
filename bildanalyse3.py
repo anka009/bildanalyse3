@@ -82,9 +82,7 @@ if modus == "Fleckengruppen":
         max_area = st.slider("Maximale Fleckengröße", min_area, 1000, 250)
         group_diameter = st.slider("Gruppendurchmesser", 20, 500, 60)
 
-        if "intensity" not in st.session_state:
-            st.session_state.intensity = 25
-        intensity = st.slider("Intensitäts-Schwelle", 0, 255, st.session_state.intensity)
+        st.session_state.intensity = st.slider("Intensitäts-Schwelle", 0, 255, st.session_state.get("intensity", 25))
 
         if st.button("🔎 Beste Schwelle ermitteln"):
             cropped_array = img_array[y_start:y_end, x_start:x_end]
