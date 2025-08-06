@@ -84,11 +84,12 @@ if modus == "Fleckengruppen":
 
         st.session_state.intensity = st.slider("Intensitäts-Schwelle", 0, 255, st.session_state.get("intensity", 25))
 
-        if st.button("🔎 Beste Schwelle ermitteln"):
+        if st.button("🔎 Größte Schwelle berechnen"):
             cropped_array = img_array[y_start:y_end, x_start:x_end]
             best_intensity, score = finde_beste_schwelle(cropped_array, min_area, max_area, group_diameter)
-            st.session_state.intensity = best_intensity
-            st.success(f"Beste Schwelle: {best_intensity} ({score} Gruppen)")
+            st.session_state.best_intensity = best_intensity
+            st.info(f"💡 Empfohlene Schwelle: **{best_intensity}** (ergibt {score} Gruppen)")
+
 
     with col2:
         cropped_array = img_array[y_start:y_end, x_start:x_end]
