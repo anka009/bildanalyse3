@@ -97,12 +97,15 @@ if modus == "Fleckengruppen":
                     outline=circle_color, width=circle_width
                 )
 
-        # Ergebnis anzeigen
-        st.markdown(f"### 🧮 Ergebnisse")
-        st.markdown(f"- **Anzahl erkannter Flecken**: `{len(centers)}`")
-        st.markdown(f"- **Anzahl erkannter Gruppen**: `{len(grouped)}`")
 
         st.image(draw_img, caption="🎯 Ergebnisbild mit Markierungen", use_column_width=True)
+
+        # Ergebnisse UNTER dem Bild
+        st.markdown("---")
+        st.markdown("### 🧮 Ergebnisse")
+        col_fleck, col_gruppe = st.columns(2)
+        col_fleck.metric("Erkannte Flecken", len(centers))
+        col_gruppe.metric("Erkannte Gruppen", len(grouped))
 
 # Kreis-Ausschnitt-Modus
 elif modus == "Kreis-Ausschnitt":
