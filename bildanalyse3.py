@@ -90,6 +90,8 @@ if modus == "Fleckengruppen":
         intensity = st.slider("Intensitäts-Schwelle", 0, 255, value=st.session_state.intensity, key="intensity_slider")
         st.session_state.intensity = intensity
 
+        st.session_state.intensity = best_intensity
+        st.session_state.intensity_slider = best_intensity  # Slider visuell aktualisieren
 
         
         if st.button("🔎 Größte Schwelle berechnen"):
