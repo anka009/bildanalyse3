@@ -26,18 +26,23 @@ def finde_flecken(cropped_array, min_area, max_area, intensity):
     mask = cropped_array < intensity
     labeled_array, _ = label(mask)
     objects = find_objects(labeled_array)
-    return [((obj[1].start + obj[1].stop) // 2, (obj[0].start + obj[0].stop) // 2)
-            for obj in objects if min_area <= np.sum(labeled_array[obj] > 0) <= max_area]
+    return [
+        ((obj[1].start + obj[1].stop) // 2, (obj[0].start + obj[0].stop) // 2)
+        for obj in objects
+        if min_area <= np.sum(labeled_array[obj] > 0) <= max_area
+    ]
 
 def gruppiere_flecken(centers, group_diameter):
     grouped, visited = [], set()
     for i, (x1, y1) in enumerate(centers):
-        if i in visited: continue
+        if i in visited:
+            continue
         gruppe = [(x1, y1)]
         visited.add(i)
         for j, (x2, y2) in enumerate(centers):
-            if j in visited: continue
-            if ((x1 - x2)**2 + (y1 - y2)**2)**0.5 <= group_diameter / 2:
+            if j in visited:
+                continue
+            if ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 0.5 <= group_diameter / 2:
                 gruppe.append((x2, y2))
                 visited.add(j)
         grouped.append(gruppe)
@@ -54,6 +59,7 @@ spot_radius = st.sidebar.slider("🔘 Flecken-Radius", 1, 20, 10)
 if modus == "Fleckengruppen":
     st.subheader("🧠 Fleckengruppen erkennen")
     col1, col2 = st.columns([1, 2])
+    
     with col1:
         x_start = st.slider("Start-X", 0, w - 1, 0)
         x_end = st.slider("End-X", x_start + 1, w, w)
@@ -72,6 +78,7 @@ if modus == "Fleckengruppen":
         draw_img = img_rgb.copy()
         draw = ImageDraw.Draw(draw_img)
 
+        # Einzelne Flecken einzeichnen
         for x, y in centers:
             draw.ellipse(
                 [(x + x_start - spot_radius, y + y_start - spot_radius),
@@ -79,6 +86,7 @@ if modus == "Fleckengruppen":
                 fill=spot_color
             )
 
+        # Gruppen einzeichnen
         for gruppe in grouped:
             if gruppe:
                 xs, ys = zip(*gruppe)
@@ -97,6 +105,7 @@ if modus == "Fleckengruppen":
 elif modus == "Kreis-Ausschnitt":
     st.subheader("🎯 Kreis-Ausschnitt wählen")
     col1, col2 = st.columns([1, 2])
+    
     with col1:
         center_x = st.slider("🞄 Mittelpunkt-X", 0, w - 1, w // 2)
         center_y = st.slider("🞄 Mittelpunkt-Y", 0, h - 1, h // 2)
@@ -120,5 +129,7 @@ elif modus == "Kreis-Ausschnitt":
                  (center_x + radius, center_y + radius)],
                 fill=255
             )
-            cropped = Image.composite(img_rgb, Image.new("RGB", img_rgb.size, (255, 255, 255)), mask)
+            cropped = Image.composite(
+                img_rgb, Image.new("RGB", img_rgb.size, (255, 255, 255)), mask
+            )
             st.image(cropped, caption="🧩 Kreis-Ausschnitt", use_column_width=True)
