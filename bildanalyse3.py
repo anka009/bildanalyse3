@@ -109,11 +109,11 @@ if modus == "Fleckengruppen":
             )
 
         for gruppe in grouped:
-    if gruppe:
-        xs, ys = zip(*gruppe)
-        x_mean = int(np.mean(xs))
-        y_mean = int(np.mean(ys))
-        radius = group_diameter / 2
+            if gruppe:
+                xs, ys = zip(*gruppe)
+                x_mean = int(np.mean(xs))
+                y_mean = int(np.mean(ys))
+                radius = group_diameter / 2
                 draw.ellipse(
                     [(x_mean + x_start - radius, y_mean + y_start - radius),
                      (x_mean + x_start + radius, y_mean + y_start + radius)],
