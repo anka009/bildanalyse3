@@ -2,8 +2,8 @@ import streamlit as st
 from PIL import Image, ImageDraw
 import numpy as np
 from scipy.ndimage import label, find_objects
-from io import BytesIO
 import matplotlib.pyplot as plt
+from io import BytesIO
 
 # 📄 Seiteneinstellungen
 st.set_page_config(page_title="Bildanalyse Komfort-App", layout="wide")
@@ -20,28 +20,22 @@ img_gray = img_rgb.convert("L")
 img_array = np.array(img_gray)
 w, h = img_rgb.size
 
-
 # 🧠 Hilfsfunktionen
 def finde_flecken(cropped_array, min_area, max_area, intensity):
     mask = cropped_array < intensity
     labeled_array, _ = label(mask)
     objects = find_objects(labeled_array)
-    return [
-        ((obj[1].start + obj[1].stop) // 2, (obj[0].start + obj[0].stop) // 2)
-        for obj in objects
-        if min_area <= np.sum(labeled_array[obj] > 0) <= max_area
-    ]
+    return [((obj[1].start + obj[1].stop) // 2, (obj[0].start + obj[0].stop) // 2)
+            for obj in objects if min_area <= np.sum(labeled_array[obj] > 0) <= max_area]
 
 def gruppiere_flecken(centers, group_diameter):
     grouped, visited = [], set()
     for i, (x1, y1) in enumerate(centers):
-        if i in visited:
-            continue
+        if i in visited: continue
         gruppe = [(x1, y1)]
         visited.add(i)
         for j, (x2, y2) in enumerate(centers):
-            if j in visited:
-                continue
+            if j in visited: continue
             if ((x1 - x2)**2 + (y1 - y2)**2)**0.5 <= group_diameter / 2:
                 gruppe.append((x2, y2))
                 visited.add(j)
@@ -92,78 +86,79 @@ if modus == "Fleckengruppen":
             st.session_state.intensity = 25
         intensity = st.slider("Intensitäts-Schwelle", 0, 255, st.session_state.intensity)
 
-        cropped_array = img_array[y_start:y_end, x_start:x_end]
-
         if st.button("🔎 Beste Schwelle (Gruppenanzahl) ermitteln"):
+            cropped_array = img_array[y_start:y_end, x_start:x_end]
             best_intensity, score = finde_beste_schwelle(cropped_array, min_area, max_area, group_diameter)
             st.session_state.intensity = best_intensity
             st.success(f"✅ Beste Schwelle: {best_intensity} ({score} Gruppen)")
 
     with col2:
+        cropped_array = img_array[y_start:y_end, x_start:x_end]
         centers = finde_flecken(cropped_array, min_area, max_area, intensity)
-
-        if st.button("🟦 Einzelne Flecken anzeigen"):
-            draw_img = img_rgb.copy()
-            draw = ImageDraw.Draw(draw_img)
-            for x, y in centers:
-                draw.ellipse(
-                    [(x + x_start - spot_radius, y + y_start - spot_radius),
-                     (x + x_start + spot_radius, y + y_start + spot_radius)],
-                    fill=spot_color
-                )
-            st.image(draw_img, caption="🎯 Einzelne Flecken", use_column_width=True)
-
         grouped = gruppiere_flecken(centers, group_diameter)
-        st.success(f"📍 Fleckengruppen erkannt: {len(grouped)}")
 
-        schwellen, gruppenzahlen = gruppen_histogramm(cropped_array, min_area, max_area, group_diameter)
-        best_thresh, _ = finde_beste_schwelle(cropped_array, min_area, max_area, group_diameter)
+        draw_img = img_rgb.copy()
+        draw = ImageDraw.Draw(draw_img)
 
-        fig, ax = plt.subplots()
-        ax.bar(schwellen, gruppenzahlen, width=4, color='skyblue', edgecolor='black')
-        ax.axvline(best_thresh, color='red', linestyle='--', label=f'Beste Schwelle: {best_thresh}')
-        ax.set_xlabel("Intensitäts-Schwelle")
-        ax.set_ylabel("Gruppenzahl")
-        ax.set_title("📊 Gruppenzahl vs. Intensität")
-        ax.legend()
-        st.pyplot(fig)
+        for x, y in centers:
+            draw.ellipse(
+                [(x + x_start - spot_radius, y + y_start - spot_radius),
+                 (x + x_start + spot_radius, y + y_start + spot_radius)],
+                fill=spot_color
+            )
+
+        for gruppe in grouped:
+            if gruppe:
+                xs, ys = zip(*gruppe)
+                x_min, x_max = min(xs), max(xs)
+                y_min, y_max = min(ys), max(ys)
+                draw.rectangle(
+                    [(x_min + x_start - group_diameter // 2, y_min + y_start - group_diameter // 2),
+                     (x_max + x_start + group_diameter // 2, y_max + y_start + group_diameter // 2)],
+                    outline=circle_color,
+                    width=circle_width
+                )
+
+        st.image(draw_img, caption=f"🎯 {len(grouped)} Gruppen erkannt", use_column_width=True)
+
+        if st.button("📊 Gruppenzahl-Histogramm anzeigen"):
+            schwellen, gruppenzahlen = gruppen_histogramm(cropped_array, min_area, max_area, group_diameter)
+            best_thresh, _ = finde_beste_schwelle(cropped_array, min_area, max_area, group_diameter)
+
+            fig, ax = plt.subplots()
+            ax.bar(schwellen, gruppenzahlen, width=4, color='skyblue', edgecolor='black')
+            ax.axvline(best_thresh, color='red', linestyle='--', label=f'Beste Schwelle: {best_thresh}')
+            ax.set_xlabel("Intensitäts-Schwelle")
+            ax.set_ylabel("Gruppenzahl")
+            ax.set_title("📊 Gruppenzahl vs. Intensität")
+            ax.legend()
+            st.pyplot(fig)
 
 # ▓▓▓ MODUS: Kreis-Ausschnitt ▓▓▓
 elif modus == "Kreis-Ausschnitt":
     st.subheader("🎯 Kreis-Ausschnitt wählen")
     col1, col2 = st.columns([1, 2])
-
     with col1:
         st.markdown("### 🔧 Kreis-Einstellungen")
         center_x = st.slider("🞄 Mittelpunkt-X", 0, w - 1, w // 2)
         center_y = st.slider("🞄 Mittelpunkt-Y", 0, h - 1, h // 2)
         radius = st.slider("🔵 Radius", 10, min(w, h) // 2, 100)
-
     with col2:
         draw_img = img_rgb.copy()
         draw = ImageDraw.Draw(draw_img)
         draw.ellipse(
             [(center_x - radius, center_y - radius), (center_x + radius, center_y + radius)],
-            outline=circle_color,
-            width=circle_width
+            outline=circle_color, width=circle_width
         )
         st.image(draw_img, caption="🖼️ Kreis-Vorschau", use_column_width=True)
 
-    if st.checkbox("🎬 Nur Ausschnitt anzeigen"):
-        mask = Image.new("L", (w, h), 0)
-        mask_draw = ImageDraw.Draw(mask)
-        mask_draw.ellipse(
-            [(center_x - radius, center_y - radius), (center_x + radius, center_y + radius)],
-            fill=255
-        )
-        cropped = Image.composite(img_rgb, Image.new("RGB", img_rgb.size, (255, 255, 255)), mask)
-        st.image(cropped, caption="🧩 Kreis-Ausschnitt", use_column_width=True)
+        if st.checkbox("🎬 Nur Ausschnitt anzeigen"):
+            mask = Image.new("L", (w, h), 0)
+            mask_draw = ImageDraw.Draw(mask)
+            mask_draw.ellipse(
+                [(center_x - radius, center_y - radius), (center_x + radius, center_y + radius)],
+                fill=255
+            )
+            cropped = Image.composite(img_rgb, Image.new("RGB", img_rgb.size, (255, 255, 255)), mask)
+            st.image(cropped, caption="🧩 Kreis-Ausschnitt", use_column_width=True)
 
-        buf = BytesIO()
-        cropped.save(buf, format="PNG")
-        st.download_button(
-            label="📥 Kreis-Ausschnitt herunterladen",
-            data=buf.getvalue(),
-            file_name="kreis_ausschnitt.png",
-            mime="image/png"
-        )
