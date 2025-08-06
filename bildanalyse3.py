@@ -219,22 +219,22 @@ elif modus == "Kreis-Ausschnitt":
         )
         st.image(draw_img, caption="🖼️ Kreis-Vorschau", use_column_width=True)
 
-        if st.checkbox("🎬 Nur Ausschnitt anzeigen"):
-            mask = Image.new("L", (w, h), 0)
-            mask_draw = ImageDraw.Draw(mask)
-            mask_draw.ellipse(
-                [(center_x - radius, center_y - radius), (center_x + radius, center_y + radius)],
-                fill=255
-            )
-            cropped = Image.composite(img_rgb, Image.new("RGB", img_rgb.size, (255, 255, 255)), mask)
-            st.image(cropped, caption="🧩 Kreis-Ausschnitt", use_column_width=True)
+    if st.checkbox("🎬 Nur Ausschnitt anzeigen"):
+        mask = Image.new("L", (w, h), 0)
+        mask_draw = ImageDraw.Draw(mask)
+        mask_draw.ellipse(
+            [(center_x - radius, center_y - radius), (center_x + radius, center_y + radius)],
+            fill=255
+        )
+        cropped = Image.composite(img_rgb, Image.new("RGB", img_rgb.size, (255, 255, 255)), mask)
+        st.image(cropped, caption="🧩 Kreis-Ausschnitt", use_column_width=True)
 
-            buf = BytesIO()
-            cropped.save(buf, format="PNG")
-            byte_im = buf.getvalue()
-            st.download_button(
-                label="📥 Kreis-Ausschnitt herunterladen",
-                data=byte_im,
-                file_name="kreis_ausschnitt.png",
-                mime="image/png"
-            )
+        buf = BytesIO()
+        cropped.save(buf, format="PNG")
+        byte_im = buf.getvalue()
+        st.download_button(
+            label="📥 Kreis-Ausschnitt herunterladen",
+            data=byte_im,
+            file_name="kreis_ausschnitt.png",
+            mime="image/png"
+        )
