@@ -20,25 +20,7 @@ img_gray = img_rgb.convert("L")
 img_array = np.array(img_gray)
 w, h = img_rgb.size
 
-# 🖼️ Bild anzeigen
-st.subheader("📷 Hochgeladenes Bild")
-st.image(img_rgb, caption="Originalbild", use_column_width=True)
 
-# 🎚️ Intensitäts-Schwellenwert-Slider
-threshold = st.slider("🔽 Intensitäts-Schwellenwert für Histogramm", min_value=0, max_value=255, value=128)
-
-# 📊 Histogramm mit Schwellenwert-Linie (ohne OpenCV)
-gray_array = np.array(img_gray)
-hist, bins = np.histogram(gray_array.flatten(), bins=256, range=[0, 256])
-
-fig, ax = plt.subplots()
-ax.plot(hist, color='gray')
-ax.axvline(x=threshold, color='red', linestyle='--', label=f'Schwelle: {threshold}')
-ax.set_title("📊 Intensitäts-Histogramm")
-ax.set_xlabel("Intensität")
-ax.set_ylabel("Pixelanzahl")
-ax.legend()
-st.pyplot(fig)
 # 🧠 Hilfsfunktionen
 def finde_flecken(cropped_array, min_area, max_area, intensity):
     mask = cropped_array < intensity
