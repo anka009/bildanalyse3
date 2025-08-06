@@ -115,7 +115,13 @@ if modus == "Fleckengruppen":
                 xs, ys = zip(*gruppe)
                 x_mean = int(np.mean(xs))
                 y_mean = int(np.mean(ys))
-                max_dist = max(((x - x_mean)**2 + (y - y_mean)**2)**0.5 for x, y in gruppe)
+                radius = group_diameter / 2
+                draw.ellipse(
+                    [(x_mean + x_start - radius, y_mean + y_start - radius),
+                     (x_mean + x_start + radius, y_mean + y_start + radius)],
+                    outline=circle_color,
+                    width=circle_width
+                )
                 draw.ellipse(
                     [(x_mean + x_start - max_dist, y_mean + y_start - max_dist),
                      (x_mean + x_start + max_dist, y_mean + y_start + max_dist)],
