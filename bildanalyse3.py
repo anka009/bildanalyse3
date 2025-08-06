@@ -86,16 +86,19 @@ if modus == "Fleckengruppen":
             st.session_state.intensity = 25
         intensity = st.slider("Intensitäts-Schwelle", 0, 255, st.session_state.intensity)
 
-        if st.button("🔎 Beste Schwelle (Gruppenanzahl) ermitteln"):
+        if st.button("🔎 Beste Schwelle ermitteln"):
             cropped_array = img_array[y_start:y_end, x_start:x_end]
             best_intensity, score = finde_beste_schwelle(cropped_array, min_area, max_area, group_diameter)
             st.session_state.intensity = best_intensity
-            st.success(f"✅ Beste Schwelle: {best_intensity} ({score} Gruppen)")
+            st.success(f"Beste Schwelle: {best_intensity} ({score} Gruppen)")
 
     with col2:
         cropped_array = img_array[y_start:y_end, x_start:x_end]
-        centers = finde_flecken(cropped_array, min_area, max_area, intensity)
+        centers = finde_flecken(cropped_array, min_area, max_area, st.session_state.intensity)
         grouped = gruppiere_flecken(centers, group_diameter)
+
+        st.write(f"🔍 Flecken erkannt: {len(centers)}")
+        st.write(f"👥 Gruppen erkannt: {len(grouped)}")
 
         draw_img = img_rgb.copy()
         draw = ImageDraw.Draw(draw_img)
@@ -119,10 +122,10 @@ if modus == "Fleckengruppen":
                     outline=circle_color,
                     width=circle_width
                 )
-                    
-            st.image(draw_img, caption=f"🎯 {len(grouped)} Gruppen erkannt", use_column_width=True)
 
-        if st.button("📊 Gruppenzahl-Histogramm anzeigen"):
+        st.image(draw_img, caption=f"🎯 {len(grouped)} Gruppen erkannt", use_column_width=True)
+
+        if st.button("📊 Histogramm anzeigen"):
             schwellen, gruppenzahlen = gruppen_histogramm(cropped_array, min_area, max_area, group_diameter)
             best_thresh, _ = finde_beste_schwelle(cropped_array, min_area, max_area, group_diameter)
 
