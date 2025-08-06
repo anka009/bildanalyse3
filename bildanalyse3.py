@@ -4,8 +4,6 @@ import numpy as np
 from scipy.ndimage import label, find_objects
 from io import BytesIO
 import matplotlib.pyplot as plt
-import cv2
-
 
 # 📄 Seiteneinstellungen
 st.set_page_config(page_title="Bildanalyse Komfort-App", layout="wide")
@@ -20,6 +18,8 @@ if not uploaded_file:
 img_rgb = Image.open(uploaded_file).convert("RGB")
 img_gray = img_rgb.convert("L")
 img_array = np.array(img_gray)
+w, h = img_rgb.size
+
 # 🖼️ Bild anzeigen
 st.subheader("📷 Hochgeladenes Bild")
 st.image(img_rgb, caption="Originalbild", use_column_width=True)
@@ -27,9 +27,9 @@ st.image(img_rgb, caption="Originalbild", use_column_width=True)
 # 🎚️ Intensitäts-Schwellenwert-Slider
 threshold = st.slider("🔽 Intensitäts-Schwellenwert für Histogramm", min_value=0, max_value=255, value=128)
 
-# 📊 Histogramm mit Schwellenwert-Linie
+# 📊 Histogramm mit Schwellenwert-Linie (ohne OpenCV)
 gray_array = np.array(img_gray)
-hist = cv2.calcHist([gray_array.astype(np.uint8)], [0], None, [256], [0, 256])
+hist, bins = np.histogram(gray_array.flatten(), bins=256, range=[0, 256])
 
 fig, ax = plt.subplots()
 ax.plot(hist, color='gray')
@@ -39,9 +39,6 @@ ax.set_xlabel("Intensität")
 ax.set_ylabel("Pixelanzahl")
 ax.legend()
 st.pyplot(fig)
-
-w, h = img_rgb.size
-
 # 🧠 Hilfsfunktionen
 def finde_flecken(cropped_array, min_area, max_area, intensity):
     mask = cropped_array < intensity
