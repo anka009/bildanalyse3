@@ -6,3 +6,5 @@ scipy
 streamlit-drawable-canvas
 opencv-python
 scikit-image
+xlsxwriter
+pandas
