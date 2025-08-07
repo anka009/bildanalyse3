@@ -106,6 +106,20 @@ if modus == "Fleckengruppen":
         col_fleck, col_gruppe = st.columns(2)
         col_fleck.metric("Erkannte Flecken", len(centers))
         col_gruppe.metric("Erkannte Gruppen", len(grouped))
+        from io import BytesIO
+
+        # Bild in Bytes umwandeln
+        img_buffer = BytesIO()
+        draw_img.save(img_buffer, format="PNG")
+        img_bytes = img_buffer.getvalue()
+
+        # Download-Button anzeigen
+        st.download_button(
+            label="📥 Markiertes Bild herunterladen",
+            data=img_bytes,
+            file_name="fleckengruppen_ergebnis.png",
+            mime="image/png"
+        )
 
 # Kreis-Ausschnitt-Modus
 elif modus == "Kreis-Ausschnitt":
