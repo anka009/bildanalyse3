@@ -96,7 +96,7 @@ def fleckengruppen_modus():
                     outline=circle_color, width=circle_width
                 )
 
-        st.image(draw_img, caption="🎯 Ergebnisbild mit Markierungen", use_column_width=True)
+        st.image(draw_img, caption="🎯 Ergebnisbild mit Markierungen", use_container_width=True)
         st.markdown("---")
         st.markdown("### 🧮 Ergebnisse")
         col_fleck, col_gruppe = st.columns(2)
@@ -127,7 +127,7 @@ def fleckengruppen_modus():
             st.download_button("📄 CSV herunterladen", csv_data, "fleckengruppen_analyse.csv", "text/csv")
 
             excel_buffer = BytesIO()
-            with pd.ExcelWriter(excel_buffer, engine="xlsxwriter") as writer:
+            with pd.ExcelWriter(excel_buffer, engine="openpyxl") as writer:
                 df.to_excel(writer, index=False, sheet_name="Analyse")
             st.download_button("📊 Excel herunterladen", excel_buffer.getvalue(),
                                "fleckengruppen_analyse.xlsx",
@@ -153,7 +153,7 @@ def kreis_modus():
              (center_x + radius, center_y + radius)],
             outline=circle_color, width=circle_width
         )
-        st.image(draw_img, caption="🖼️ Kreis-Vorschau", use_column_width=True)
+        st.image(draw_img, caption="🖼️ Kreis-Vorschau", use_container_width=True)
 
         if st.checkbox("🎬 Nur Ausschnitt anzeigen"):
             mask = Image.new("L", (w, h), 0)
@@ -166,7 +166,7 @@ def kreis_modus():
             cropped = Image.composite(
                 img_rgb, Image.new("RGB", img_rgb.size, (255, 255, 255)), mask
             )
-            st.image(cropped, caption="🧩 Kreis-Ausschnitt", use_column_width=True)
+            st.image(cropped, caption="🧩 Kreis-Ausschnitt", use_container_width=True)
 
 # Modus ausführen
 if modus == "Fleckengruppen":
