@@ -90,7 +90,7 @@ def fleckengruppen_modus():
                      (x_mean + x_start + radius, y_mean + y_start + radius)],
                     outline=circle_color, width=circle_width
                 )
-        st.image(draw_img, caption="🎯 Ergebnisbild mit Markierungen", use_column_width=True)
+        st.image(draw_img, caption="🎯 Ergebnisbild mit Markierungen", use_container_width=True)
         st.markdown("---")
         st.markdown("### 🧮 Ergebnisse")
         col_fleck, col_gruppe = st.columns(2)
@@ -113,7 +113,7 @@ def kreis_modus():
              (center_x + radius, center_y + radius)],
             outline=circle_color, width=circle_width
         )
-        st.image(draw_img, caption="🖼️ Kreis-Vorschau", use_column_width=True)
+        st.image(draw_img, caption="🖼️ Kreis-Vorschau", use_container_width=True)
 
     if st.checkbox("🎬 Nur Ausschnitt anzeigen"):
         mask = Image.new("L", (w, h), 0)
@@ -128,7 +128,7 @@ def kreis_modus():
             Image.new("RGB", img_rgb.size, (255, 255, 255)),
             mask
         )
-        st.image(cropped, caption="🧩 Kreis-Ausschnitt", use_column_width=True)
+        st.image(cropped, caption="🧩 Kreis-Ausschnitt", use_container_width=True)
 
         # Download-Button für Ausschnitt
         img_buffer = BytesIO()
