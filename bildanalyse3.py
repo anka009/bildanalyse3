@@ -120,6 +120,44 @@ if modus == "Fleckengruppen":
             file_name="fleckengruppen_ergebnis.png",
             mime="image/png"
         )
+# Optional: Ergebnisse auch als Tabelle anzeigen
+import pandas as pd
+
+# Ergebnis-Daten vorbereiten
+df = pd.DataFrame([{
+    "Gruppe": i + 1,
+    "Fleckenzahl": len(gruppe),
+    "X_Mittel": int(np.mean([p[0] for p in gruppe])),
+    "Y_Mittel": int(np.mean([p[1] for p in gruppe]))
+} for i, gruppe in enumerate(grouped)])
+
+# Download-Buttons nur anzeigen, wenn DataFrame nicht leer
+if not df.empty:
+    # Tabelle anzeigen
+    st.dataframe(df)
+
+    # CSV erzeugen
+    csv_data = df.to_csv(index=False).encode("utf-8")
+    st.download_button(
+        label="📄 CSV herunterladen",
+        data=csv_data,
+        file_name="fleckengruppen_analyse.csv",
+        mime="text/csv"
+    )
+
+    # Excel erzeugen
+    from io import BytesIO
+    excel_buffer = BytesIO()
+    with pd.ExcelWriter(excel_buffer, engine="xlsxwriter") as writer:
+        df.to_excel(writer, index=False, sheet_name="Analyse")
+    st.download_button(
+        label="📊 Excel herunterladen",
+        data=excel_buffer.getvalue(),
+        file_name="fleckengruppen_analyse.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+else:
+    st.info("Keine Gruppen vorhanden, daher kein CSV/Excel-Export möglich.")
 
 # Kreis-Ausschnitt-Modus
 elif modus == "Kreis-Ausschnitt":
