@@ -2,7 +2,8 @@ import streamlit as st
 from PIL import Image, ImageDraw
 import numpy as np
 from scipy.ndimage import label, find_objects
-import matplotlib.pyplot as plt
+import pandas as pd
+from io import BytesIO
 
 # Seiteneinstellungen
 st.set_page_config(page_title="Bildanalyse Komfort-App", layout="wide")
@@ -54,7 +55,7 @@ circle_width = st.sidebar.slider("✒️ Liniendicke (Gruppen)", 1, 10, 6)
 spot_radius = st.sidebar.slider("🔘 Flecken-Radius", 1, 20, 10)
 
 # Fleckengruppen-Modus
-if modus == "Fleckengruppen":
+def fleckengruppen_modus():
     st.subheader("🧠 Fleckengruppen erkennen")
     col1, col2 = st.columns([1, 2])
     
@@ -76,7 +77,6 @@ if modus == "Fleckengruppen":
         draw_img = img_rgb.copy()
         draw = ImageDraw.Draw(draw_img)
 
-        # Flecken einzeln markieren
         for x, y in centers:
             draw.ellipse(
                 [(x + x_start - spot_radius, y + y_start - spot_radius),
@@ -84,7 +84,6 @@ if modus == "Fleckengruppen":
                 fill=spot_color
             )
 
-        # Gruppen markieren
         for gruppe in grouped:
             if gruppe:
                 xs, ys = zip(*gruppe)
@@ -97,70 +96,47 @@ if modus == "Fleckengruppen":
                     outline=circle_color, width=circle_width
                 )
 
-
         st.image(draw_img, caption="🎯 Ergebnisbild mit Markierungen", use_column_width=True)
-
-        # Ergebnisse UNTER dem Bild
         st.markdown("---")
         st.markdown("### 🧮 Ergebnisse")
         col_fleck, col_gruppe = st.columns(2)
         col_fleck.metric("Erkannte Flecken", len(centers))
         col_gruppe.metric("Erkannte Gruppen", len(grouped))
-        from io import BytesIO
 
-        # Bild in Bytes umwandeln
         img_buffer = BytesIO()
         draw_img.save(img_buffer, format="PNG")
         img_bytes = img_buffer.getvalue()
 
-        # Download-Button anzeigen
         st.download_button(
             label="📥 Markiertes Bild herunterladen",
             data=img_bytes,
             file_name="fleckengruppen_ergebnis.png",
             mime="image/png"
         )
-# Optional: Ergebnisse auch als Tabelle anzeigen
-import pandas as pd
 
-# Ergebnis-Daten vorbereiten
-df = pd.DataFrame([{
-    "Gruppe": i + 1,
-    "Fleckenzahl": len(gruppe),
-    "X_Mittel": int(np.mean([p[0] for p in gruppe])),
-    "Y_Mittel": int(np.mean([p[1] for p in gruppe]))
-} for i, gruppe in enumerate(grouped)])
+        df = pd.DataFrame([{
+            "Gruppe": i + 1,
+            "Fleckenzahl": len(gruppe),
+            "X_Mittel": int(np.mean([p[0] for p in gruppe])),
+            "Y_Mittel": int(np.mean([p[1] for p in gruppe]))
+        } for i, gruppe in enumerate(grouped)])
 
-# Download-Buttons nur anzeigen, wenn DataFrame nicht leer
-if not df.empty:
-    # Tabelle anzeigen
-    st.dataframe(df)
+        if not df.empty:
+            st.dataframe(df)
+            csv_data = df.to_csv(index=False).encode("utf-8")
+            st.download_button("📄 CSV herunterladen", csv_data, "fleckengruppen_analyse.csv", "text/csv")
 
-    # CSV erzeugen
-    csv_data = df.to_csv(index=False).encode("utf-8")
-    st.download_button(
-        label="📄 CSV herunterladen",
-        data=csv_data,
-        file_name="fleckengruppen_analyse.csv",
-        mime="text/csv"
-    )
-
-    # Excel erzeugen
-    from io import BytesIO
-    excel_buffer = BytesIO()
-    with pd.ExcelWriter(excel_buffer, engine="xlsxwriter") as writer:
-        df.to_excel(writer, index=False, sheet_name="Analyse")
-    st.download_button(
-        label="📊 Excel herunterladen",
-        data=excel_buffer.getvalue(),
-        file_name="fleckengruppen_analyse.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
-else:
-    st.info("Keine Gruppen vorhanden, daher kein CSV/Excel-Export möglich.")
+            excel_buffer = BytesIO()
+            with pd.ExcelWriter(excel_buffer, engine="xlsxwriter") as writer:
+                df.to_excel(writer, index=False, sheet_name="Analyse")
+            st.download_button("📊 Excel herunterladen", excel_buffer.getvalue(),
+                               "fleckengruppen_analyse.xlsx",
+                               "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        else:
+            st.info("Keine Gruppen vorhanden, daher kein CSV/Excel-Export möglich.")
 
 # Kreis-Ausschnitt-Modus
-elif modus == "Kreis-Ausschnitt":
+def kreis_modus():
     st.subheader("🎯 Kreis-Ausschnitt wählen")
     col1, col2 = st.columns([1, 2])
     
@@ -191,3 +167,9 @@ elif modus == "Kreis-Ausschnitt":
                 img_rgb, Image.new("RGB", img_rgb.size, (255, 255, 255)), mask
             )
             st.image(cropped, caption="🧩 Kreis-Ausschnitt", use_column_width=True)
+
+# Modus ausführen
+if modus == "Fleckengruppen":
+    fleckengruppen_modus()
+elif modus == "Kreis-Ausschnitt":
+    kreis_modus()
